@@ -1,4 +1,8 @@
-## oystercard
+# Oystercard
+
+## A model of the London Oystercard transport system
+
+### Converting these user stories into a workable program
 
 In order to use public transport
 As a customer
