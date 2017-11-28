@@ -20,7 +20,7 @@ class Oystercard
   end
 
   def touch_out station
-  	self.deduct(DEFAULT_MINIMUM)
+  	deduct(DEFAULT_MINIMUM)
     @journey_log.push({@entry_station => station})
   	@entry_station = nil
   end
@@ -29,11 +29,11 @@ class Oystercard
   	@entry_station ? true : false
   end
 
+private
+
   def deduct amount
   	@balance -= amount
   end
-
-private
 
   def too_much? amount
     @balance + amount > DEFAULT_LIMIT

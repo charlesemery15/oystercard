@@ -15,7 +15,7 @@ p card.balance
 p card.in_journey?
 p card.touch_in(station)
 p card.in_journey?
-p card.touch_out
+p card.touch_out(station)
 #p card.deduct (15)
 begin
 	 card.touch_in station
@@ -24,9 +24,13 @@ rescue Exception => e
 end
 p card.top_up (10)
 p card.touch_in station
-p card.touch_out
+p card.touch_out(station)
 p card.balance
 p card.touch_in(station)
 p card.entry_station
-p card.touch_out
+p card.touch_out(station)
 p card.journey_log
+p waterloo = Station.new
+p waterloo.zone
+p paddington = Station.new(2)
+p paddington.zone
