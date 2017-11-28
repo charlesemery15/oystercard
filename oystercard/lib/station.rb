@@ -1,3 +1,0 @@
-class Station
-
-end
