@@ -5,8 +5,8 @@ class Journey
 
   attr_reader :entry_station, :fare
 
-  def initialize(station = DEFAULT_STATION, touched_in = false)
-    @penalise = true if touched_in == true
+  def initialize(station = DEFAULT_STATION, touched_in_already = false)
+    @penalise = true if touched_in_already
     @status = true
     @entry_station = station
   end
