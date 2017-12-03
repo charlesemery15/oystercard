@@ -1,34 +1,42 @@
-require 'journey'
-
+require "journey"
 describe Journey do
 
-  #Testing initializing? what to do?
+  subject(:journey) { described_class.new(station) }
+  let(:bad_journey) { described_class.new(nil) }
+  let(:journey4) { described_class.new(station4) }
+  let(:station) { double(:station, zone: 1) }
+	let(:station4) { double(:station4, zone: 4) }
 
   describe "#finish" do
-    it "should be able to finish a journey" do
-      expect(subject.finish).to eq nil
+    it "makes a journey with an entry station complete" do
+      journey.finish(station)
+      expect(journey.complete?).to eq true
+    end
+    it "makes a journey with no entry station complete" do
+      bad_journey.finish(station)
+      expect(bad_journey.complete?).to eq true
+    end
+    it "sets the station passed in as the exit station" do
+      journey.finish(station)
+      expect(journey.exit_station).to eq station
     end
   end
 
   describe "#fare" do
-    it "Should give the fare price of the journey" do
-      expect(subject.fare).to eq 1
+    it "charges a penalty when there is no exit station" do
+      expect(journey.fare).to eq Journey::PENALTY_FARE
     end
-
-    it "Should alter the fare price to the penalty when touching out without touching in" do
-      subject.finish
-      expect(subject.fare).to eq Journey::PENALTY_FARE
+    it "charges a penalty fare when there is no entry station" do
+      bad_journey.finish(station)
+      expect(bad_journey.fare).to eq Journey::PENALTY_FARE
     end
-  end
-
-  describe "#status" do
-    it "Should return the status while not on a journey" do
-      subject.finish
-      expect(subject.status).to eq "Not on a journey"
+    it "charges the correct fare when the exit zone is higher than the entry zone" do
+      journey.finish(station4)
+      expect(journey.fare).to eq 4
     end
-
-    it "Should return the status of an ongoing journey" do
-      expect(subject.status).to eq "On a journey"
+    it "charges the correct fare when the entry zone is higher than the exit zone" do
+      journey4.finish(station)
+      expect(journey4.fare).to eq 4
     end
   end
 end

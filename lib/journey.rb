@@ -1,28 +1,32 @@
 class Journey
-  DEFAULT_STATION = nil
+
   PENALTY_FARE = 6
-  NORMAL_FARE = 1
+  MINIMUM_CHARGE = 1
 
-  attr_reader :entry_station, :fare
+  attr_reader :journey, :entry_station, :fare, :exit_station
 
-  def initialize(station = DEFAULT_STATION, touched_in_already = false)
-    @penalise = true if touched_in_already
-    @status = true
-    @entry_station = station
+  def initialize(entry)
+    @entry_station = entry
+    @complete = false
   end
 
-  def finish
-    @status = false
-    @penalise = false
-    @entry_station = nil
+  def finish(station)
+    @exit_station = station
+    @complete = true
   end
 
   def fare
-    (@status && !@penalise) ? 1 : PENALTY_FARE
+    correct? ? ((entry_station.zone - exit_station.zone).abs + MINIMUM_CHARGE) : PENALTY_FARE
   end
 
-  def status
-    @status ? "On a journey" : "Not on a journey"
+  def complete?
+    !!@complete
+  end
+
+  private
+
+  def correct?
+    !!(entry_station && exit_station)
   end
 
 end

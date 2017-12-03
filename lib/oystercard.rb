@@ -1,53 +1,39 @@
-require_relative 'station'
-require_relative 'journey'
+require_relative "station.rb"
+require_relative "journey_log.rb"
 
 class Oystercard
-  DEFAULT_STARTING_BALANCE = 10
+
+  attr_reader :balance
   DEFAULT_LIMIT = 90
-  DEFAULT_MINIMUM = 1
-  attr_reader :balance, :journey_log, :journey
+  DEFAULT_MIN = 1
 
   def initialize
-    @balance = DEFAULT_STARTING_BALANCE
-    @journey_log = []
-    @journey = false
-    @touched_in = false
+    @balance = 0
+    @journey_log = JourneyLog.new
   end
 
-  def top_up amount
-  	raise "Max £#{DEFAULT_LIMIT}, fool" if too_much? amount
-  	@balance += amount
+  def top_up(added)
+    fail "Exceeds balance limit (#{DEFAULT_LIMIT})" if @balance + added > DEFAULT_LIMIT
+    @balance += added
   end
 
-  def touch_in station
-  	raise "Not enough pennies, poor Baggins-McGee" if not_enough?
-    @journey = Journey.new(station, @touched_in)
-    @touched_in = true
+  def touch_in(entry)
+    fail "Insufficient funds" if @balance < DEFAULT_MIN
+    deduct(@journey_log.touch_in(entry))
   end
 
-  def touch_out station
-  	deduct(@journey.fare)
-    @journey_log.push({@journey.entry_station => station})
-    @touched_in = false
-    @journey.finish
+  def touch_out(station)
+    deduct(@journey_log.touch_out(station))
   end
 
   def in_journey?
-  	@journey != false ? @journey.status : "Not on a journey"
+    @journey_log.in_journey?
   end
 
-private
+  private
 
-  def deduct amount
-  	@balance -= amount
-  end
-
-  def too_much? amount
-    @balance + amount > DEFAULT_LIMIT
-  end
-
-  def not_enough?
-  	@balance < DEFAULT_MINIMUM
+  def deduct(subtracted)
+    @balance -= subtracted
   end
 
 end

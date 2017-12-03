@@ -1,12 +1,14 @@
-require 'station'
+require "station"
 
 describe Station do
-  it "should return the default station zone" do
-    expect(subject.zone).to eq 1
-  end
+  subject(:station) { described_class.new("Old Street", 1) }
 
-  it "should return set station zone" do
-    station = Station.new(3)
-    expect(station.zone).to eq 3
+  describe "initialization" do
+    it "gives a name to the station instance which can be checked" do
+      expect(station.name).to eq("Old Street")
+    end
+    it "sets a station's zone, which can be checked" do
+      expect(station.zone).to eq(1)
+    end
   end
 end

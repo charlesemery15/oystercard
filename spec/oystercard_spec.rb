@@ -1,101 +1,63 @@
-require 'oystercard'
-
+require "oystercard"
 describe Oystercard do
-  subject {Oystercard.new}
-  let (:station) {double(:station)}
-  let (:station_2) {double(:station_2)}
-  describe "#balance" do
-    it "should return a balance" do
-      expect(subject.balance).to be_instance_of(Integer)
+
+  subject(:oystercard) { described_class.new }
+  let(:station) { double(:station, zone: 1) }
+  let(:station4) { double(:station4, zone: 4) }
+
+  describe "#initialization" do
+    it "initializes with a balance of 0" do
+      expect(oystercard.balance).to be_zero
     end
   end
 
   describe "#top_up" do
-  	it "should accept a top up" do
-  	  expect(subject.top_up(20)).to eq(Oystercard::DEFAULT_STARTING_BALANCE + 20)
-  	end
-  	it "should not be able to go above limit" do
-  	  expect{subject.top_up(100)}.to raise_error("Max £#{Oystercard::DEFAULT_LIMIT}, fool")
-  	end
-  end
+    before do
+      oystercard.top_up(Oystercard::DEFAULT_LIMIT)
+    end
+    it "adds a given amount to the balance" do
+      expect(oystercard.balance).to eq Oystercard::DEFAULT_LIMIT
+    end
 
-  describe "#in_journey?" do
-  	it "should return false when not on a journey" do
-  	  expect(subject.in_journey?).to eq "Not on a journey"
-  	end
+    it "raises an error when an added amount makes the balance exceed 90" do
+      expect{ oystercard.top_up(1) }.to raise_error("Exceeds balance limit (#{Oystercard::DEFAULT_LIMIT})")
+    end
   end
 
   describe "#touch_in" do
-  	it "should start a journey" do
-  	  subject.touch_in (station)
-  	  expect(subject.in_journey?).to eq "On a journey"
-  	end
-
-  	it "shouldn't start a journey when card has less than £#{Oystercard::DEFAULT_MINIMUM}" do
-      10.times do
-      	subject.touch_in(station)
-      	subject.touch_out(station)
-      end
-
-      expect{subject.touch_in(station)}.to raise_error "Not enough pennies, poor Baggins-McGee"
-  	end
-
-  	it "should remember the station" do
-      subject.touch_in(station)
-  	  expect(subject.journey.entry_station).to eq station
-  	end
+    it "sets the card to be in journey" do
+      oystercard.top_up(Oystercard::DEFAULT_MIN)
+      oystercard.touch_in(station)
+      expect(oystercard).to be_in_journey
+    end
+    it "raises an error if the balance is less than 1" do
+      expect{ oystercard.touch_in(station) }.to raise_error("Insufficient balance")
+    end
+    it "charges a penalty fare if the last journey wasn't completed" do
+      oystercard.top_up(Journey::MINIMUM_CHARGE)
+      oystercard.touch_in(station)
+      expect{ oystercard.touch_in(station4) }.to change{ oystercard.balance }.by(-Journey::PENALTY_FARE)
+    end
   end
 
   describe "#touch_out" do
-  	before do
-  	  subject.touch_in(station)
+    it "signals that the Oystercard has finished a journey" do
+      oystercard.touch_out(station4)
+      expect(oystercard).not_to be_in_journey
     end
-
-  	it "should end a journey" do
-  	  subject.touch_out(station)
-  	  expect(subject.in_journey?).to eq "Not on a journey"
-  	end
-
-  	it "should charge a journey fare" do
-  		expect {subject.touch_out(station)}.to change {subject.balance}.by(-Oystercard::DEFAULT_MINIMUM)
-  	end
-
-  	it "should forget entry station" do
-      subject.touch_out(station)
-  	  expect(subject.journey.entry_station).to eq nil
-  	end
-
-    it "Should apply the penalty fare when touching out without touching in" do
-      subject.touch_out(station)
-      subject.touch_out(station)
-      expect(subject.balance).to eq 3
+    it "deducts the minimum charge when travelling to the same zone" do
+      oystercard.top_up(Journey::MINIMUM_CHARGE)
+      oystercard.touch_in(station)
+      expect { oystercard.touch_out(station) }.to change{ oystercard.balance }.by(-Journey::MINIMUM_CHARGE)
     end
-
-    it "Should apply the penalty fare when touching out after having touched in twice" do
-      subject.touch_in(station)
-      subject.touch_out(station)
-      expect(subject.balance).to eq 4
+    it "charges a penalty fare if not in a journey" do
+      expect { oystercard.touch_out(station4) }.to change{ oystercard.balance }.by(-Journey::PENALTY_FARE)
     end
   end
 
-  describe "#entry_station" do
-  	before do
-  	  subject.touch_in(station)
-  	end
-
-  	it "returns the entry station" do
-  		expect(subject.journey.entry_station).to eq station
-  	end
-  end
-
-    describe "#journey_log" do
-      before do
-        subject.touch_in(station)
-      end
-
-      it "returns a journey log" do
-        subject.touch_out(station_2)
-      expect(subject.journey_log[0]).to include (station) and include (station_2)
+  describe "#in_journey" do
+    it "returns true or false" do
+      expect(oystercard.in_journey?).to eq(true).or eq false
     end
   end
 end
